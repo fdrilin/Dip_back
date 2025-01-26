@@ -1,3 +1,4 @@
+using System.Data;
 using Microsoft.EntityFrameworkCore;
 using TodoApi.Models;
 
@@ -5,8 +6,12 @@ namespace TodoApi.Repositories;
 
 public class ResourceRepository : BaseRepository
 {
+    public ResourceRepository() {
+        tableName = "hw_resourses";
+    }
+
     public List<ResourceItem> getResources() {
-        string query = "SELECT * FROM hw_resourses";
+        string query = "SELECT * FROM " + tableName;
         var ds = getDataSet(query);
     
         List<ResourceItem> resourceItems = new List<ResourceItem>();
@@ -25,4 +30,26 @@ public class ResourceRepository : BaseRepository
 
         return resourceItems; 
     }
+
+    public ResourceItem addResourceItem(ResourceItem resourceItem)
+    {
+        resourceItem.Id = addRow(resourceItem.getAsDictionary());
+        
+        Console.WriteLine("added resource");
+        return resourceItem;
+    }
+    
+    public ResourceItem updateResourceItem(ResourceItem resourceItem, int id)
+    {
+        updateRow(resourceItem.getAsDictionary(), id);
+        
+        Console.WriteLine("updated resource");
+        return resourceItem;
+    }
+
+    public bool deleteResourceItem(int id)
+    {
+        return deleteRow(id);
+    }
+
 }

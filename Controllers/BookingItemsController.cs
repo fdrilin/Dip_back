@@ -13,20 +13,16 @@ namespace TodoApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ResourceItemsController : ControllerBase
+    public class BookingItemsController : ControllerBase
     {
-        //private readonly ResourceContext _context;
 
-        public ResourceItemsController(/*ResourceContext context*/)
-        {
-            //_context = context;
-        }
+        public BookingItemsController(){}
 
         // GET: api/ResourceItems
         [HttpGet]
-        public IEnumerable<ResourceItem> GetResourceItem()
+        public IEnumerable<BookingItem> GetBookingItem()
         {
-            return (new ResourceRepository().getResources().ToArray());
+            return (new BookingRepository().getBookings().ToArray());
         }
 
 /*
@@ -47,15 +43,15 @@ namespace TodoApi.Controllers
         // PUT: api/TodoItems/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutResourceItem(int id, ResourceItem resourceItem)
+        public async Task<IActionResult> PutBookingItem(int id, BookingItem bookingItem)
         {
-            if (id != resourceItem.Id)
+            if (id != bookingItem.Id)
             {
                 return BadRequest();
             }
 
-            Console.WriteLine(resourceItem);
-            new ResourceRepository().updateResourceItem(resourceItem, id);
+            Console.WriteLine(bookingItem);
+            new BookingRepository().updateBookingItem(bookingItem, id);
 
             return NoContent();
         }
@@ -63,30 +59,19 @@ namespace TodoApi.Controllers
         // POST: api/TodoItems
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public ResourceItem PostResourceItem(ResourceItem resourceItem)
+        public BookingItem PostBookingItem(BookingItem BookingItem)
         {
-            Console.WriteLine(resourceItem);
-            return new ResourceRepository().addResourceItem(resourceItem);
+            Console.WriteLine(BookingItem);
+            return new BookingRepository().addBookingItem(BookingItem);
         }
 
         // DELETE: api/TodoItems/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteResourceItem(int id)
+        public async Task<IActionResult> DeleteBookingItem(int id)
         {
-            /*var resourceItem = await _context.ResourceItem.FindAsync(id);
-            if (resourceItem == null)
-            {
-                return NotFound();
-            }*/
-
-            new ResourceRepository().deleteResourceItem(id);
+            new BookingRepository().deleteBookingItem(id);
 
             return NoContent();
         }
-
-        /*private bool ResouceItemExists(long id)
-        {
-            return _context.ResourceItem.Any(e => e.Id == id);
-        }*/
     }
 }
