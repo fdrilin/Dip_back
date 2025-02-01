@@ -10,25 +10,37 @@ public class ResourceRepository : BaseRepository
         tableName = "hw_resourses";
     }
 
+    private ResourceItem getItemFromRow(DataRow? row) 
+    {
+        ResourceItem item = new();
+        if(row != null)
+        {
+            item.Id = Int32.Parse(row["id"].ToString() ?? "");
+            item.Title = row["title"].ToString();
+            item.Description = row["description"].ToString();
+        }
+        
+        return item;
+    }
+
     public List<ResourceItem> getResources() {
         string query = "SELECT * FROM " + tableName;
         var ds = getDataSet(query);
     
         List<ResourceItem> resourceItems = new List<ResourceItem>();
-        for (int i = 0; i < ds.Tables[0].Rows.Count; i++)
+        foreach (DataRow row in ds.Tables[0].Rows)
         {
-            ResourceItem item = new ResourceItem();
-
-            var row = ds.Tables[0].Rows[i];
-
-            item.Id = Int32.Parse(row["id"].ToString());
-            item.Title = row["title"].ToString();
-            item.Description = row["description"].ToString();
-
-            resourceItems.Add(item);
+            resourceItems.Add(getItemFromRow(row));
         }
 
         return resourceItems; 
+    }
+
+    public ResourceItem getResourceItem(int id)
+    {
+        DataRow? row = getRowById(id);
+
+        return getItemFromRow(row);
     }
 
     public ResourceItem addResourceItem(ResourceItem resourceItem)

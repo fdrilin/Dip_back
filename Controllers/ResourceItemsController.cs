@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -26,38 +27,24 @@ namespace TodoApi.Controllers
         [HttpGet]
         public IEnumerable<ResourceItem> GetResourceItem()
         {
-            return (new ResourceRepository().getResources().ToArray());
+            return new ResourceRepository().getResources().ToArray();
         }
 
-/*
+
         // GET: api/TodoItems/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<ResourceItem>> GetResourceItem(long id)
+        public ResourceItem GetResourceItem(int id)
         {
-            var resourceItem = await _context.ResourceItem.FindAsync(id);
-
-            if (resourceItem == null)
-            {
-                return NotFound();
-            }
-
-            return resourceItem;
-        }*/
+            return new ResourceRepository().getResourceItem(id);
+        }
 
         // PUT: api/TodoItems/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutResourceItem(int id, ResourceItem resourceItem)
+        public ResourceItem PutResourceItem(int id, ResourceItem resourceItem)
         {
-            if (id != resourceItem.Id)
-            {
-                return BadRequest();
-            }
-
             Console.WriteLine(resourceItem);
-            new ResourceRepository().updateResourceItem(resourceItem, id);
-
-            return NoContent();
+            return new ResourceRepository().updateResourceItem(resourceItem, id);
         }
 
         // POST: api/TodoItems

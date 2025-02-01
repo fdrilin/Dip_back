@@ -31,6 +31,20 @@ public class BaseRepository
         return ds;
     }
 
+    protected DataRow? getRowById(int id) 
+    {
+        connect();
+        string query = $"SELECT * FROM {tableName} WHERE id = @id"; 
+        MySqlCommand cmd = new MySqlCommand(query, connection);
+        cmd.Parameters.AddWithValue("@id", id);
+
+        MySqlDataAdapter adapter = new(cmd);
+        var ds = new DataSet();
+        adapter.Fill(ds);
+
+        return ds.Tables[0].Rows.Count > 0 ? ds.Tables[0].Rows[0] : null;
+    }
+
     protected int addRow(Dictionary<string, string> data) 
     {
         connect();
