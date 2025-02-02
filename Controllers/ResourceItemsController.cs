@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
@@ -14,7 +15,7 @@ namespace TodoApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ResourceItemsController : ControllerBase
+    public class ResourceItemsController : MyBaseController
     {
         //private readonly ResourceContext _context;
 
@@ -27,7 +28,9 @@ namespace TodoApi.Controllers
         [HttpGet]
         public IEnumerable<ResourceItem> GetResourceItem()
         {
-            return new ResourceRepository().getResources().ToArray();
+            string? search = Request.Query["search"];
+            
+            return new ResourceRepository().getResources(search).ToArray();
         }
 
 
@@ -50,10 +53,26 @@ namespace TodoApi.Controllers
         // POST: api/TodoItems
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public ResourceItem PostResourceItem(ResourceItem resourceItem)
+        public IActionResult PostResourceItem(ResourceItem resourceItem)
         {
+            ResourceRepository repository = new();
+             //var product = _productContext.Products.Find(id);
+            //return product == null ? NotFound() : Ok(product);
+
             Console.WriteLine(resourceItem);
-            return new ResourceRepository().addResourceItem(resourceItem);
+            if(resourceItem.Title == "") {
+                
+                return BadRequest(GetError("title empty"));
+            }
+            if(resourceItem.Description == "") {
+                
+                return BadRequest(GetError("description empty"));
+            }
+            if(!repository.validateUnique(resourceItem.Title)){
+                return BadRequest(GetError("Resource with this title already exists"));
+            }
+
+            return Ok(repository.addResourceItem(resourceItem));
         }
 
         // DELETE: api/TodoItems/5

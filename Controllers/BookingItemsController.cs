@@ -13,7 +13,7 @@ namespace TodoApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class BookingItemsController : ControllerBase
+    public class BookingItemsController : MyBaseController
     {
 
         public BookingItemsController(){}

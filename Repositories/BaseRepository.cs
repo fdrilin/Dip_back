@@ -19,10 +19,13 @@ public class BaseRepository
         return connection;
     }
 
-    protected DataSet getDataSet(string query)
+    protected DataSet getDataSet(string query, string? search = null)
     {
         connect();
         MySqlCommand cmd = new MySqlCommand(query, connection);
+        if (search != null) {
+            cmd.Parameters.AddWithValue("@search", search);
+        }
 
         MySqlDataAdapter adapter = new MySqlDataAdapter(cmd);
         var ds = new DataSet();

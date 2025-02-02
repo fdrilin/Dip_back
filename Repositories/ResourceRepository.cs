@@ -23,9 +23,19 @@ public class ResourceRepository : BaseRepository
         return item;
     }
 
-    public List<ResourceItem> getResources() {
+    public bool validateUnique(string title) {
+        string query = "SELECT * FROM " + tableName + " WHERE title = @search";
+        var ds = getDataSet(query, title);
+
+        return ds.Tables[0].Rows.Count == 0; 
+    }
+
+    public List<ResourceItem> getResources(string? search) {
         string query = "SELECT * FROM " + tableName;
-        var ds = getDataSet(query);
+        if(search != null) {
+            query += " WHERE (title LIKE @search OR description LIKE @search)";
+        }
+        var ds = getDataSet(query, "%"+search+"%");
     
         List<ResourceItem> resourceItems = new List<ResourceItem>();
         foreach (DataRow row in ds.Tables[0].Rows)
