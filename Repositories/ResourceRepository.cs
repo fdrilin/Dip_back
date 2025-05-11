@@ -10,22 +10,26 @@ public class ResourceRepository : BaseRepository
         tableName = "hw_resourses";
     }
 
-    private ResourceItem getItemFromRow(DataRow? row) 
+    private ResourceItem? getItemFromRow(DataRow? row) 
     {
-        ResourceItem item = new();
-        if(row != null)
+        if (row == null) 
         {
-            item.Id = Int32.Parse(row["id"].ToString() ?? "");
-            item.Title = row["title"].ToString();
-            item.Description = row["description"].ToString();
+            return null;
         }
+
+        ResourceItem item = new();
+        
+        item.Id = Int32.Parse(row["id"].ToString() ?? "");
+        item.Title = row["title"].ToString();
+        item.Description = row["description"].ToString();
+        item.Available = Int32.Parse(row["available"].ToString());
         
         return item;
     }
 
-    public bool validateUnique(string title) {
-        string query = "SELECT * FROM " + tableName + " WHERE title = @search";
-        var ds = getDataSet(query, title);
+    public bool validateUnique(string serial_No, int? excludeId = null) {
+        string query = "SELECT * FROM " + tableName + " WHERE serial_no = @search";
+        var ds = getDataSet(query, serial_No, excludeId);
 
         return ds.Tables[0].Rows.Count == 0; 
     }
@@ -46,7 +50,7 @@ public class ResourceRepository : BaseRepository
         return resourceItems; 
     }
 
-    public ResourceItem getResourceItem(int id)
+    public ResourceItem? getResourceItem(int id)
     {
         DataRow? row = getRowById(id);
 

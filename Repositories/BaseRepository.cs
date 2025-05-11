@@ -19,12 +19,21 @@ public class BaseRepository
         return connection;
     }
 
-    protected DataSet getDataSet(string query, string? search = null)
+    protected DataSet getDataSet(string query, string? search = null, int? excludeId = null)
     {
+        if (excludeId != null) 
+        {
+            query += " AND id != @id";
+        }
+
         connect();
         MySqlCommand cmd = new MySqlCommand(query, connection);
         if (search != null) {
             cmd.Parameters.AddWithValue("@search", search);
+        }
+
+        if (excludeId != null) {
+            cmd.Parameters.AddWithValue("@id", excludeId);
         }
 
         MySqlDataAdapter adapter = new MySqlDataAdapter(cmd);
@@ -68,7 +77,7 @@ public class BaseRepository
             cmd.Parameters.AddWithValue("@" + item.Key, item.Value);
         }
         foreach (MySqlParameter parameter in cmd.Parameters) {
-            Console.WriteLine(parameter.Value.ToString());
+            Console.WriteLine(parameter.Value);
         }
         cmd.ExecuteNonQuery();
 

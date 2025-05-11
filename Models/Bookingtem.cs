@@ -7,6 +7,9 @@ public class BookingItem
     public int UserId { get; set; }
     public string? BeginDate { get; set; }
     public string? EndDate { get; set; }
+    public int Rented { get; set; }
+    public int Returned { get; set; }
+    public int Canceled { get; set; }
     public override string ToString() 
     {
         return Id + ":" + ResourceId + ":" + UserId + ":" + BeginDate + ":" + EndDate;
@@ -19,7 +22,10 @@ public class BookingItem
             { "hw_resourse_Id", ResourceId.ToString() },
             { "user_Id", UserId.ToString() },
             { "begin_date", BeginDate },
-            { "end_date", EndDate }
+            { "end_date", EndDate },
+            { "rented", Rented.ToString() },
+            { "returned", Returned.ToString() },
+            { "canceled", Canceled.ToString() }
         };
     }
 }

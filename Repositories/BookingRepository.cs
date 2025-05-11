@@ -10,27 +10,45 @@ public class BookingRepository : BaseRepository
         tableName = "booking";
     }
 
+    private BookingItem? getItemFromRow(DataRow? row) 
+    {
+        if (row == null) 
+        {
+            return null;
+        }
+
+        BookingItem item = new();
+
+        item.Id = Int32.Parse(row["id"].ToString());
+        item.ResourceId = Int32.Parse(row["hw_resourse_id"].ToString());
+        item.UserId = Int32.Parse(row["user_id"].ToString());
+        item.BeginDate = row["begin_date"].ToString();
+        item.EndDate = row["end_date"].ToString();
+        item.Rented = Int32.Parse(row["rented"].ToString());
+        item.Returned = Int32.Parse(row["returned"].ToString());
+        item.Canceled = Int32.Parse(row["canceled"].ToString());
+        
+        return item;
+    }
+
     public List<BookingItem> getBookings() {
         string query = "SELECT * FROM " + tableName;
         var ds = getDataSet(query);
     
         List<BookingItem> bookingItems = new List<BookingItem>();
-        for (int i = 0; i < ds.Tables[0].Rows.Count; i++)
+        foreach (DataRow row in ds.Tables[0].Rows)
         {
-            BookingItem item = new BookingItem();
-
-            var row = ds.Tables[0].Rows[i];
-
-            item.Id = Int32.Parse(row["id"].ToString());
-            item.ResourceId = Int32.Parse(row["hw_resourse_id"].ToString());
-            item.UserId = Int32.Parse(row["user_id"].ToString());
-            item.BeginDate = row["begin_date"].ToString();
-            item.EndDate = row["end_date"].ToString();
-
-            bookingItems.Add(item);
+            bookingItems.Add(getItemFromRow(row));
         }
 
         return bookingItems; 
+    }
+
+    public BookingItem? getBookingItem(int id)
+    {
+        DataRow? row = getRowById(id);
+
+        return getItemFromRow(row);
     }
 
     public BookingItem addBookingItem(BookingItem bookingItem)

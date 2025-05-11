@@ -26,28 +26,35 @@ namespace TodoApi.Controllers
 
         // GET: api/ResourceItems
         [HttpGet]
-        public IEnumerable<ResourceItem> GetResourceItem()
+        public IActionResult GetResourceItems()
         {
             string? search = Request.Query["search"];
             
-            return new ResourceRepository().getResources(search).ToArray();
+            return Ok(new ResourceRepository().getResources(search).ToArray());
         }
 
 
         // GET: api/TodoItems/5
         [HttpGet("{id}")]
-        public ResourceItem GetResourceItem(int id)
+        public IActionResult GetResourceItem(int id)
         {
-            return new ResourceRepository().getResourceItem(id);
+            return Ok(new ResourceRepository().getResourceItem(id));
         }
 
         // PUT: api/TodoItems/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public ResourceItem PutResourceItem(int id, ResourceItem resourceItem)
+        public IActionResult PutResourceItem(int id, ResourceItem resourceItem)
         {
-            Console.WriteLine(resourceItem);
-            return new ResourceRepository().updateResourceItem(resourceItem, id);
+            var repository = new ResourceRepository();
+
+            var error = ValidateItem(repository, resourceItem, id);
+            if (error != null) 
+            {
+                return BadRequest(GetError(error));
+            }
+
+            return Ok(repository.updateResourceItem(resourceItem, id));
         }
 
         // POST: api/TodoItems
@@ -56,20 +63,11 @@ namespace TodoApi.Controllers
         public IActionResult PostResourceItem(ResourceItem resourceItem)
         {
             ResourceRepository repository = new();
-             //var product = _productContext.Products.Find(id);
-            //return product == null ? NotFound() : Ok(product);
 
-            Console.WriteLine(resourceItem);
-            if(resourceItem.Title == "") {
-                
-                return BadRequest(GetError("title empty"));
-            }
-            if(resourceItem.Description == "") {
-                
-                return BadRequest(GetError("description empty"));
-            }
-            if(!repository.validateUnique(resourceItem.Title)){
-                return BadRequest(GetError("Resource with this title already exists"));
+            var error = ValidateItem(repository, resourceItem);
+            if (error != null) 
+            {
+                return BadRequest(GetError(error));
             }
 
             return Ok(repository.addResourceItem(resourceItem));
@@ -77,22 +75,50 @@ namespace TodoApi.Controllers
 
         // DELETE: api/TodoItems/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteResourceItem(int id)
+        public IActionResult DeleteResourceItem(int id)
         {
-            /*var resourceItem = await _context.ResourceItem.FindAsync(id);
-            if (resourceItem == null)
-            {
-                return NotFound();
-            }*/
-
-            new ResourceRepository().deleteResourceItem(id);
-
-            return NoContent();
+            return Ok(new ResourceRepository().deleteResourceItem(id));
         }
 
-        /*private bool ResouceItemExists(long id)
+        private string? ValidateItem(ResourceRepository repository, ResourceItem item) 
         {
-            return _context.ResourceItem.Any(e => e.Id == id);
-        }*/
+            if(string.IsNullOrEmpty(item.Title)) {
+                return "title empty";
+            }
+            if(string.IsNullOrEmpty(item.Description)) { 
+                return "description empty";
+            }
+            if(string.IsNullOrEmpty(item.SerialNo)) { 
+                return "Serial_No empty";
+            }
+
+            if (!repository.validateUnique(item.SerialNo, item.Id)) 
+            {
+                return "Resource with this serial_No already exists";
+            }
+
+            return null;
+        }
+
+        private string? ValidateItem(ResourceRepository repository, ResourceItem resourceItem, int id) 
+        {
+            if (id != resourceItem.Id)
+            {
+                return "Id error";
+            }
+
+            var error = ValidateItem(repository, resourceItem);
+            if (error != null) 
+            {
+                return error;
+            }
+
+            if(repository.getResourceItem(id) == null) 
+            {
+                return "Item not found";
+            }
+
+            return null;
+        }
     }
 }

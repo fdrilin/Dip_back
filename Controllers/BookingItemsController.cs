@@ -20,58 +20,91 @@ namespace TodoApi.Controllers
 
         // GET: api/ResourceItems
         [HttpGet]
-        public IEnumerable<BookingItem> GetBookingItem()
+        public IActionResult GetBookingItem()
         {
-            return (new BookingRepository().getBookings().ToArray());
+            return Ok(new BookingRepository().getBookings().ToArray());
         }
 
-/*
-        // GET: api/TodoItems/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<ResourceItem>> GetResourceItem(long id)
+        public IActionResult GetBookingItem(int id)
         {
-            var resourceItem = await _context.ResourceItem.FindAsync(id);
-
-            if (resourceItem == null)
-            {
-                return NotFound();
-            }
-
-            return resourceItem;
-        }*/
+            return Ok(new BookingRepository().getBookingItem(id));
+        }
 
         // PUT: api/TodoItems/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutBookingItem(int id, BookingItem bookingItem)
+        public IActionResult PutBookingItem(int id, BookingItem bookingItem)
         {
-            if (id != bookingItem.Id)
+            BookingRepository repository = new();
+            var error = ValidateItem(repository, bookingItem, id);
+            if (error != null) 
             {
-                return BadRequest();
+                return BadRequest(GetError(error));
             }
 
-            Console.WriteLine(bookingItem);
-            new BookingRepository().updateBookingItem(bookingItem, id);
-
-            return NoContent();
+            return Ok(repository.updateBookingItem(bookingItem, id));
         }
 
         // POST: api/TodoItems
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public BookingItem PostBookingItem(BookingItem BookingItem)
+        public IActionResult PostBookingItem(BookingItem bookingItem)
         {
-            Console.WriteLine(BookingItem);
-            return new BookingRepository().addBookingItem(BookingItem);
+            BookingRepository repository = new();
+            var error = ValidateItem(repository, bookingItem);
+            if (error != null) 
+            {
+                return BadRequest(GetError(error));
+            }
+
+            return Ok(repository.addBookingItem(bookingItem));
         }
 
         // DELETE: api/TodoItems/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteBookingItem(int id)
+        public IActionResult DeleteBookingItem(int id)
         {
-            new BookingRepository().deleteBookingItem(id);
+            return Ok(new BookingRepository().deleteBookingItem(id));
+        }
 
-            return NoContent();
+        private string? ValidateItem(BookingRepository repository, BookingItem item) 
+        {
+            if(item.UserId != null) {
+                return "User not defined";
+            }
+            if(item.ResourceId != null) { 
+                return "Resource not defined";
+            }
+            if(string.IsNullOrEmpty(item.BeginDate)) { 
+                return "Begin date empty";
+            }
+            if(string.IsNullOrEmpty(item.EndDate)) { 
+                return "End date empty";
+            }
+
+            return null;
+        }
+
+        private string? ValidateItem(BookingRepository repository, BookingItem item, int id) 
+        {
+            if (id != item.Id)
+            {
+                return "Id error";
+            }
+
+            var error = ValidateItem(repository, item);
+            if (error != null) 
+            {
+                return error;
+            }
+
+            if(repository.getBookingItem(id) == null) 
+            {
+                return "Item not found";
+            }
+
+            return null;
         }
     }
 }
