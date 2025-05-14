@@ -24,7 +24,6 @@ namespace TodoApi.Controllers
             //_context = context;
         }
 
-        // GET: api/ResourceItems
         [HttpGet]
         public IActionResult GetResourceItems()
         {
@@ -33,16 +32,12 @@ namespace TodoApi.Controllers
             return Ok(new ResourceRepository().getResources(search).ToArray());
         }
 
-
-        // GET: api/TodoItems/5
         [HttpGet("{id}")]
         public IActionResult GetResourceItem(int id)
         {
             return Ok(new ResourceRepository().getResourceItem(id));
         }
 
-        // PUT: api/TodoItems/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public IActionResult PutResourceItem(int id, ResourceItem resourceItem)
         {
@@ -57,8 +52,28 @@ namespace TodoApi.Controllers
             return Ok(repository.updateResourceItem(resourceItem, id));
         }
 
-        // POST: api/TodoItems
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut("availability/{id}")]
+        public IActionResult PutResourceItemAvailable(int id, ResourceItem item)
+        {
+            var repository = new ResourceRepository();
+
+            var oldItem = repository.getResourceItem(id);
+
+            if (id != item.Id)
+            {
+                return BadRequest(GetError("Id error"));
+            }
+            try {
+                oldItem.Available = item.Available;
+            }
+            catch(Exception e) {
+                return BadRequest(GetError(e.Message));
+                //not sure this is optimal
+            }
+
+            return Ok(repository.updateResourceItem(oldItem, id));
+        }
+
         [HttpPost]
         public IActionResult PostResourceItem(ResourceItem resourceItem)
         {

@@ -46,6 +46,30 @@ namespace TodoApi.Controllers
             return Ok(repository.updateBookingItem(bookingItem, id));
         }
 
+        //TODO: cancel booking, confirm rented and returned
+
+        /*[HttpPut("cancel/{id}")]
+        public IActionResult PutBookingItemCanceled(int id, BookingItem bookingItem)
+        {
+            var repository = new BookingRepository();
+
+            var oldBookingItem = repository.getBookingItem(id);
+
+            if (id != bookingItem.Id)
+            {
+                return "Id error";
+            }
+            try {
+                oldBookingItem.Canceled = bookingItem.Canceled;
+            }
+            catch(err) {
+                return BadRequest(GetError(err));
+                //not sure this is optimal
+            }
+
+            return Ok(repository.updateBookingItem(oldBookingItem, id));
+        }*/
+
         // POST: api/TodoItems
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
