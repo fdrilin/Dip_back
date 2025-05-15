@@ -52,27 +52,27 @@ namespace TodoApi.Controllers
 
         //TODO: change document id
 
-        /*[HttpPut("updateDocument/{id}")]
-        public IActionResult PutUserItemDocumentId(int id, UserItem userItem)
+        [HttpPut("updateDocument/{id}")]
+        public IActionResult PutUserItemDocumentId(int id, UserItem item)
         {
             var repository = new UserRepository();
 
-            var oldUserItem = repository.getUserItem(id);
+            var oldItem = repository.getUserItem(id);
 
-            if (id != userItem.Id)
+            if (id != item.Id)
             {
-                return "Id error";
+                return BadRequest(GetError("Id error"));
             }
-            try {
-                oldUserItem.Available = userItem.Available;
+            try {   
+                oldItem.Document_id = item.Document_id;
             }
-            catch(error) {
-                return BadRequest(GetError(error));
+            catch(Exception e) {
+                return BadRequest(GetError(e.Message));
                 //not sure this is optimal
             }
 
-            return Ok(repository.updateUserItem(oldUserItem, id));
-        }*/
+            return Ok(repository.updateUserItem(oldItem, id));
+        }
 
         // POST: api/TodoItems
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754

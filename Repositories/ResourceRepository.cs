@@ -22,6 +22,7 @@ public class ResourceRepository : BaseRepository
         item.Id = Int32.Parse(row["id"].ToString() ?? "");
         item.Title = row["title"].ToString();
         item.Description = row["description"].ToString();
+        item.SerialNo = row["serial_no"].ToString();
         item.Available = Int32.Parse(row["available"].ToString());
         
         return item;

@@ -22,8 +22,8 @@ public class BookingRepository : BaseRepository
         item.Id = Int32.Parse(row["id"].ToString());
         item.ResourceId = Int32.Parse(row["hw_resourse_id"].ToString());
         item.UserId = Int32.Parse(row["user_id"].ToString());
-        item.BeginDate = row["begin_date"].ToString();
-        item.EndDate = row["end_date"].ToString();
+        item.BeginDate = ((DateTime) row["begin_date"]).ToString("yyyy-MM-dd HH:mm:ss");
+        item.EndDate = ((DateTime) row["end_date"]).ToString("yyyy-MM-dd HH:mm:ss");
         item.Rented = Int32.Parse(row["rented"].ToString());
         item.Returned = Int32.Parse(row["returned"].ToString());
         item.Canceled = Int32.Parse(row["canceled"].ToString());

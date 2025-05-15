@@ -48,27 +48,52 @@ namespace TodoApi.Controllers
 
         //TODO: cancel booking, confirm rented and returned
 
-        /*[HttpPut("cancel/{id}")]
-        public IActionResult PutBookingItemCanceled(int id, BookingItem bookingItem)
+        public IActionResult PutBookingItemSingle(int id, BookingItem item, string singleType)
         {
             var repository = new BookingRepository();
 
-            var oldBookingItem = repository.getBookingItem(id);
+            var oldItem = repository.getBookingItem(id);
 
-            if (id != bookingItem.Id)
+            if (id != item.Id)
             {
-                return "Id error";
+                return BadRequest(GetError("Id error"));
             }
             try {
-                oldBookingItem.Canceled = bookingItem.Canceled;
+                if (singleType == "cancel") {
+                    oldItem.Canceled = item.Canceled;
+                }
+                if (singleType == "rented") {
+                    oldItem.Rented = item.Rented;
+                }
+                if (singleType == "returned") {
+                    oldItem.Returned = item.Returned;
+                }
             }
-            catch(err) {
-                return BadRequest(GetError(err));
+            catch(Exception e) {
+                return BadRequest(GetError(e.Message));
                 //not sure this is optimal
             }
 
-            return Ok(repository.updateBookingItem(oldBookingItem, id));
-        }*/
+            return Ok(repository.updateBookingItem(oldItem, id));
+        }
+
+        [HttpPut("cancel/{id}")]
+        public IActionResult PutBookingItemCanceled(int id, BookingItem item)
+        {
+            return PutBookingItemSingle(id, item, "cancel");
+        }
+
+        [HttpPut("rented/{id}")]
+        public IActionResult PutBookingItemRented(int id, BookingItem item)
+        {
+            return PutBookingItemSingle(id, item, "rented");
+        }
+
+        [HttpPut("returned/{id}")]
+        public IActionResult PutBookingItemReturned(int id, BookingItem item)
+        {
+            return PutBookingItemSingle(id, item, "returned");
+        }
 
         // POST: api/TodoItems
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -94,10 +119,10 @@ namespace TodoApi.Controllers
 
         private string? ValidateItem(BookingRepository repository, BookingItem item) 
         {
-            if(item.UserId != null) {
+            if(item.UserId == null) {
                 return "User not defined";
             }
-            if(item.ResourceId != null) { 
+            if(item.ResourceId == null) { 
                 return "Resource not defined";
             }
             if(string.IsNullOrEmpty(item.BeginDate)) { 
