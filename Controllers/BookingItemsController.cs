@@ -20,14 +20,17 @@ namespace TodoApi.Controllers
 
         // GET: api/ResourceItems
         [HttpGet]
-        public IActionResult GetBookingItem()
+        public IActionResult GetBookingItems()
         {
+            //TODO: make so user can only see his, admin all, guest 403
+            BeforeAction();
             return Ok(new BookingRepository().getBookings().ToArray());
         }
 
         [HttpGet("{id}")]
         public IActionResult GetBookingItem(int id)
         {
+            BeforeAction();
             return Ok(new BookingRepository().getBookingItem(id));
         }
 
@@ -36,6 +39,7 @@ namespace TodoApi.Controllers
         [HttpPut("{id}")]
         public IActionResult PutBookingItem(int id, BookingItem bookingItem)
         {
+            BeforeAction();
             BookingRepository repository = new();
             var error = ValidateItem(repository, bookingItem, id);
             if (error != null) 
@@ -50,6 +54,7 @@ namespace TodoApi.Controllers
 
         public IActionResult PutBookingItemSingle(int id, BookingItem item, string singleType)
         {
+            BeforeAction();
             var repository = new BookingRepository();
 
             var oldItem = repository.getBookingItem(id);
@@ -80,18 +85,21 @@ namespace TodoApi.Controllers
         [HttpPut("cancel/{id}")]
         public IActionResult PutBookingItemCanceled(int id, BookingItem item)
         {
+            BeforeAction();
             return PutBookingItemSingle(id, item, "cancel");
         }
 
         [HttpPut("rented/{id}")]
         public IActionResult PutBookingItemRented(int id, BookingItem item)
         {
+            BeforeAction();
             return PutBookingItemSingle(id, item, "rented");
         }
 
         [HttpPut("returned/{id}")]
         public IActionResult PutBookingItemReturned(int id, BookingItem item)
         {
+            BeforeAction();
             return PutBookingItemSingle(id, item, "returned");
         }
 
@@ -100,6 +108,7 @@ namespace TodoApi.Controllers
         [HttpPost]
         public IActionResult PostBookingItem(BookingItem bookingItem)
         {
+            BeforeAction();
             BookingRepository repository = new();
             var error = ValidateItem(repository, bookingItem);
             if (error != null) 
@@ -114,6 +123,7 @@ namespace TodoApi.Controllers
         [HttpDelete("{id}")]
         public IActionResult DeleteBookingItem(int id)
         {
+            BeforeAction();
             return Ok(new BookingRepository().deleteBookingItem(id));
         }
 

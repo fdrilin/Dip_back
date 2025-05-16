@@ -57,15 +57,30 @@ public class BaseRepository
         return ds.Tables[0].Rows.Count > 0 ? ds.Tables[0].Rows[0] : null;
     }
 
-    protected int addRow(Dictionary<string, string> data) 
+    protected DataRow? getRowByField(string fieldName, string fieldValue)
+    {
+        connect();
+        string query = $"SELECT * FROM {tableName} WHERE {fieldName} = @fieldValue";
+        MySqlCommand cmd = new MySqlCommand(query, connection);
+        cmd.Parameters.AddWithValue("@fieldValue", fieldValue);
+
+        MySqlDataAdapter adapter = new(cmd);
+        var ds = new DataSet();
+        adapter.Fill(ds);
+
+        return ds.Tables[0].Rows.Count > 0 ? ds.Tables[0].Rows[0] : null;
+    }
+
+    protected int addRow(Dictionary<string, string> data)
     {
         connect();
         string fields = "";
         string values = "";
 
-        foreach(KeyValuePair<string, string> item in data) {
-            fields += (fields == ""?"": ", ") + item.Key ;
-            values += (values == ""?"": ", ") + "@" + item.Key;
+        foreach (KeyValuePair<string, string> item in data)
+        {
+            fields += (fields == "" ? "" : ", ") + item.Key;
+            values += (values == "" ? "" : ", ") + "@" + item.Key;
         }
 
         string query = "INSERT INTO " + tableName + "(" + fields + ") VALUES(" + values + ")";
@@ -73,10 +88,12 @@ public class BaseRepository
         Console.WriteLine(query);
 
         MySqlCommand cmd = new MySqlCommand(query, connection);
-        foreach(KeyValuePair<string, string> item in data) {
+        foreach (KeyValuePair<string, string> item in data)
+        {
             cmd.Parameters.AddWithValue("@" + item.Key, item.Value);
         }
-        foreach (MySqlParameter parameter in cmd.Parameters) {
+        foreach (MySqlParameter parameter in cmd.Parameters)
+        {
             Console.WriteLine(parameter.Value);
         }
         cmd.ExecuteNonQuery();

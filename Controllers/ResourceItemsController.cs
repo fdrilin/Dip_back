@@ -27,6 +27,8 @@ namespace TodoApi.Controllers
         [HttpGet]
         public IActionResult GetResourceItems()
         {
+            BeforeAction();
+
             string? search = Request.Query["search"];
             
             return Ok(new ResourceRepository().getResources(search).ToArray());
@@ -35,12 +37,14 @@ namespace TodoApi.Controllers
         [HttpGet("{id}")]
         public IActionResult GetResourceItem(int id)
         {
+            BeforeAction();
             return Ok(new ResourceRepository().getResourceItem(id));
         }
 
         [HttpPut("{id}")]
         public IActionResult PutResourceItem(int id, ResourceItem resourceItem)
         {
+            BeforeAction();
             var repository = new ResourceRepository();
 
             var error = ValidateItem(repository, resourceItem, id);
@@ -55,6 +59,7 @@ namespace TodoApi.Controllers
         [HttpPut("availability/{id}")]
         public IActionResult PutResourceItemAvailable(int id, ResourceItem item)
         {
+            BeforeAction();
             var repository = new ResourceRepository();
 
             var oldItem = repository.getResourceItem(id);
@@ -77,6 +82,7 @@ namespace TodoApi.Controllers
         [HttpPost]
         public IActionResult PostResourceItem(ResourceItem resourceItem)
         {
+            BeforeAction();
             ResourceRepository repository = new();
 
             var error = ValidateItem(repository, resourceItem);
@@ -92,11 +98,13 @@ namespace TodoApi.Controllers
         [HttpDelete("{id}")]
         public IActionResult DeleteResourceItem(int id)
         {
+            BeforeAction();
             return Ok(new ResourceRepository().deleteResourceItem(id));
         }
 
         private string? ValidateItem(ResourceRepository repository, ResourceItem item) 
         {
+            BeforeAction();
             if(string.IsNullOrEmpty(item.Title)) {
                 return "title empty";
             }
@@ -117,6 +125,7 @@ namespace TodoApi.Controllers
 
         private string? ValidateItem(ResourceRepository repository, ResourceItem resourceItem, int id) 
         {
+            BeforeAction();
             if (id != resourceItem.Id)
             {
                 return "Id error";

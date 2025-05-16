@@ -21,6 +21,13 @@ namespace TodoApi.Controllers
         [HttpGet]
         public IActionResult GetUserItems()
         {
+            BeforeAction();
+            var errorStatus = checkAdmin();
+            if ((errorStatus) != null)
+            {
+                return errorStatus;
+            }
+
             string? search = Request.Query["search"];
             
             return Ok(new UserRepository().getUsers(search).ToArray());
@@ -31,6 +38,13 @@ namespace TodoApi.Controllers
         [HttpGet("{id}")]
         public IActionResult GetUserItem(int id)
         {
+            BeforeAction();
+            var errorStatus = checkAdmin();
+            if ((errorStatus) != null)
+            {
+                return errorStatus;
+            }
+
             return Ok(new UserRepository().getUserItem(id));
         }
 
@@ -39,6 +53,13 @@ namespace TodoApi.Controllers
         [HttpPut("{id}")]
         public IActionResult PutUserItem(int id, UserItem userItem)
         {
+            BeforeAction();
+            var errorStatus = checkAdmin();
+            if ((errorStatus) != null)
+            {
+                return errorStatus;
+            }
+
             var repository = new UserRepository();
 
             var error = ValidateItem(repository, userItem, id);
@@ -49,12 +70,17 @@ namespace TodoApi.Controllers
 
             return Ok(repository.updateUserItem(userItem, id));
         }
-
-        //TODO: change document id
-
+        
         [HttpPut("updateDocument/{id}")]
         public IActionResult PutUserItemDocumentId(int id, UserItem item)
         {
+            BeforeAction();
+            var errorStatus = checkAdmin();
+            if ((errorStatus) != null)
+            {
+                return errorStatus;
+            }
+
             var repository = new UserRepository();
 
             var oldItem = repository.getUserItem(id);
@@ -62,7 +88,7 @@ namespace TodoApi.Controllers
             if (id != item.Id)
             {
                 return BadRequest(GetError("Id error"));
-            }
+}
             try {   
                 oldItem.Document_id = item.Document_id;
             }
@@ -79,6 +105,13 @@ namespace TodoApi.Controllers
         [HttpPost]
         public IActionResult PostUserItem(UserItem userItem)
         {
+            BeforeAction();
+            var errorStatus = checkAdmin();
+            if ((errorStatus) != null)
+            {
+                return errorStatus;
+            }
+
             UserRepository repository = new();
             
             var error = ValidateItem(repository, userItem);
@@ -94,30 +127,45 @@ namespace TodoApi.Controllers
         [HttpDelete("{id}")]
         public IActionResult DeleteUserItem(int id)
         {
+            BeforeAction();
+            var errorStatus = checkAdmin();
+            if ((errorStatus) != null)
+            {
+                return errorStatus;
+            }
+
             return Ok(new UserRepository().deleteUserItem(id));
         }
 
-        private string? ValidateItem(UserRepository repository, UserItem item) 
+        private string? ValidateItem(UserRepository repository, UserItem item)
         {
-            if(string.IsNullOrEmpty(item.Login)) {
+            if (isAdmin())
+            {
+                return "admin only";
+            }
+            if (string.IsNullOrEmpty(item.Login))
+            {
                 return "Login empty";
             }
-            if(string.IsNullOrEmpty(item.Password)) { 
+            if (string.IsNullOrEmpty(item.Password))
+            {
                 return "Password empty";
             }
-            if(string.IsNullOrEmpty(item.Name)) {
+            if (string.IsNullOrEmpty(item.Name))
+            {
                 return "Name empty";
             }
-            if(string.IsNullOrEmpty(item.Email)) { 
+            if (string.IsNullOrEmpty(item.Email))
+            {
                 return "Email empty";
             }
 
-            if (!repository.validateUnique(item.Login, item.Id)) 
+            if (!repository.validateUnique(item.Login, item.Id))
             {
                 return "This login is already used";
             }
 
-            if (!repository.validateUnique(item.Email, item.Id)) 
+            if (!repository.validateUnique(item.Email, item.Id))
             {
                 return "This email is already used";
             }

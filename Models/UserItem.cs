@@ -8,6 +8,8 @@ public class UserItem
     public string? Name { get; set; }
     public string? Email { get; set; }
     public string? Document_id { get; set; }
+    public int? Admin { get; set; } = 0;
+    public string? Token { get; set; }
 
     public override string ToString() 
     {
@@ -22,7 +24,9 @@ public class UserItem
             { "password", Password },
             { "name", Name },
             { "email", Email },
-            { "document_id", Document_id }
+            { "document_id", Document_id },
+            { "admin", Admin.ToString() },
+            { "token", Token }
         };
     }
 }

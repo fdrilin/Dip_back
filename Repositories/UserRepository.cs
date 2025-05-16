@@ -24,6 +24,8 @@ public class UserRepository : BaseRepository
         item.Name = row["name"].ToString();
         item.Email = row["email"].ToString();
         item.Document_id = row["document_id"].ToString();
+        item.Admin = Int32.Parse(row["admin"].ToString() ?? "");
+        item.Token = row["token"].ToString();
         
         return item;
     }
@@ -50,6 +52,20 @@ public class UserRepository : BaseRepository
         }
 
         return userItems; 
+    }
+
+    public UserItem? getUserItemByLogin(string login)
+    {
+        DataRow? row = getRowByField("login", login);
+
+        return getItemFromRow(row);
+    }
+
+    public UserItem? getUserItemByToken(string token)
+    {
+        DataRow? row = getRowByField("token", token);
+
+        return getItemFromRow(row);
     }
 
     public UserItem? getUserItem(int id)

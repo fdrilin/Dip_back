@@ -16,7 +16,46 @@ namespace TodoApi.Controllers
 {
     public class MyBaseController : ControllerBase
     {
-        protected ErrorItem GetError(string message) 
+        protected UserItem? currentUser { get; set; } = null;
+
+        public void BeforeAction()
+        {
+            string authHeader = Request.Headers["Authorization"].ToString() ?? "";
+
+            if (authHeader == "")
+            {
+                return;
+            }
+            if (!authHeader.StartsWith("Bearer "))
+            {
+                return;
+            }
+
+            string token = authHeader.Substring("Bearer ".Length).Trim();
+
+            UserRepository repository = new();
+
+            currentUser = repository.getUserItemByToken(token);
+
+            if (currentUser == null)
+            {
+                Console.WriteLine("User token not valid");
+                return;
+            }
+            Console.WriteLine(currentUser);
+        }
+
+        protected bool isAdmin()
+        {
+            return currentUser != null && currentUser.Admin == 1;
+        }
+
+        protected IActionResult? checkAdmin()
+        {
+            return isAdmin() ? null : StatusCode(403, "admin only");
+        }
+
+        protected ErrorItem GetError(string message)
         {
             return new ErrorItem(message);
         }
