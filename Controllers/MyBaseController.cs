@@ -52,7 +52,7 @@ namespace TodoApi.Controllers
 
         protected IActionResult? checkAdmin()
         {
-            return isAdmin() ? null : StatusCode(403, "admin only");
+            return isAdmin() ? null : StatusCode(403, GetError("admin only"));
         }
 
         protected ErrorItem GetError(string message)

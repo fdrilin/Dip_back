@@ -52,7 +52,7 @@ namespace TodoApi.Controllers
 
         //TODO: cancel booking, confirm rented and returned
 
-        public IActionResult PutBookingItemSingle(int id, BookingItem item, string singleType)
+        private IActionResult PutBookingItemSingle(int id, BookingItem item, string singleType)
         {
             BeforeAction();
             var repository = new BookingRepository();

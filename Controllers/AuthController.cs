@@ -30,7 +30,7 @@ namespace TodoApi.Controllers
 
             if (dbUser == null || dbUser.Password != userItem.Password)
             {
-                return StatusCode(403, "login or password incorrect");
+                return StatusCode(403, GetError("login or password incorrect"));
             }
             dbUser.Token = GenerateSimpleToken(dbUser.Login + dbUser.Password);
             repository.updateUserItem(dbUser, dbUser.Id);
