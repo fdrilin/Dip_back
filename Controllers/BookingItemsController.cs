@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -40,12 +41,28 @@ namespace TodoApi.Controllers
         public IActionResult PutBookingItem(int id, BookingItem bookingItem)
         {
             BeforeAction();
+            var errorStatus = checkLoggedIn();
+            if ((errorStatus) != null)
+            {
+                return errorStatus;
+            }
+
             BookingRepository repository = new();
             var error = ValidateItem(repository, bookingItem, id);
             if (error != null) 
             {
                 return BadRequest(GetError(error));
             }
+
+            BookingItem dbItem = repository.getBookingItem(id);
+            if (!isAdmin() && dbItem.UserId != currentUser.Id)
+            {
+                return StatusCode(403, GetError("Forbidden."));
+            }
+            bookingItem.UserId = dbItem.Id;
+            bookingItem.Rented = dbItem.Rented;
+            bookingItem.Returned = dbItem.Returned;
+            bookingItem.Canceled = dbItem.Canceled;
 
             return Ok(repository.updateBookingItem(bookingItem, id));
         }
@@ -85,21 +102,18 @@ namespace TodoApi.Controllers
         [HttpPut("cancel/{id}")]
         public IActionResult PutBookingItemCanceled(int id, BookingItem item)
         {
-            BeforeAction();
             return PutBookingItemSingle(id, item, "cancel");
         }
 
         [HttpPut("rented/{id}")]
         public IActionResult PutBookingItemRented(int id, BookingItem item)
         {
-            BeforeAction();
             return PutBookingItemSingle(id, item, "rented");
         }
 
         [HttpPut("returned/{id}")]
         public IActionResult PutBookingItemReturned(int id, BookingItem item)
         {
-            BeforeAction();
             return PutBookingItemSingle(id, item, "returned");
         }
 
@@ -109,12 +123,21 @@ namespace TodoApi.Controllers
         public IActionResult PostBookingItem(BookingItem bookingItem)
         {
             BeforeAction();
+            var errorStatus = checkLoggedIn();
+            if ((errorStatus) != null)
+            {
+                return errorStatus;
+            }
+             
             BookingRepository repository = new();
             var error = ValidateItem(repository, bookingItem);
             if (error != null) 
             {
                 return BadRequest(GetError(error));
             }
+            
+            bookingItem.UserId = currentUser.Id;
+            bookingItem.Rented = bookingItem.Returned = bookingItem.Canceled = 0;
 
             return Ok(repository.addBookingItem(bookingItem));
         }
@@ -129,10 +152,7 @@ namespace TodoApi.Controllers
 
         private string? ValidateItem(BookingRepository repository, BookingItem item) 
         {
-            if(item.UserId == null) {
-                return "User not defined";
-            }
-            if(item.ResourceId == null) { 
+            if(item.ResourceId == 0) { 
                 return "Resource not defined";
             }
             if(string.IsNullOrEmpty(item.BeginDate)) { 

@@ -35,11 +35,19 @@ public class ResourceRepository : BaseRepository
         return ds.Tables[0].Rows.Count == 0; 
     }
 
-    public List<ResourceItem> getResources(string? search) {
+    public List<ResourceItem> getResources(string? search, bool isAdmin = false) {
         string query = "SELECT * FROM " + tableName;
-        if(search != null) {
+        if (search != null)
+        {
             query += " WHERE (title LIKE @search OR description LIKE @search)";
+            if(!isAdmin) {
+                query += " AND available = 1";
+            }
         }
+        else if(!isAdmin) {
+            query += " WHERE available = 1";
+        }
+
         var ds = getDataSet(query, "%"+search+"%");
     
         List<ResourceItem> resourceItems = new List<ResourceItem>();

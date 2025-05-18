@@ -30,8 +30,8 @@ namespace TodoApi.Controllers
             BeforeAction();
 
             string? search = Request.Query["search"];
-            
-            return Ok(new ResourceRepository().getResources(search).ToArray());
+
+            return Ok(new ResourceRepository().getResources(search, isAdmin()).ToArray());
         }
 
         [HttpGet("{id}")]

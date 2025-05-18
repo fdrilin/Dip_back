@@ -47,12 +47,18 @@ namespace TodoApi.Controllers
 
         protected bool isAdmin()
         {
+            Console.WriteLine(currentUser);
             return currentUser != null && currentUser.Admin == 1;
         }
 
         protected IActionResult? checkAdmin()
         {
             return isAdmin() ? null : StatusCode(403, GetError("admin only"));
+        }
+
+        protected IActionResult? checkLoggedIn()
+        {
+            return currentUser != null ? null : StatusCode(403, GetError("user not logged in"));
         }
 
         protected ErrorItem GetError(string message)
