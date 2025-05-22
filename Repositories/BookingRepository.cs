@@ -31,8 +31,13 @@ public class BookingRepository : BaseRepository
         return item;
     }
 
-    public List<BookingItem> getBookings() {
+    public List<BookingItem> getBookings(UserItem currentUser) {
         string query = "SELECT * FROM " + tableName;
+        if (currentUser.Admin != 1)
+        {
+            query += " WHERE user_id = " + currentUser.Id;
+        }
+
         var ds = getDataSet(query);
     
         List<BookingItem> bookingItems = new List<BookingItem>();

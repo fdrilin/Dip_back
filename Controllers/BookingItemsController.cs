@@ -25,7 +25,14 @@ namespace TodoApi.Controllers
         {
             //TODO: make so user can only see his, admin all, guest 403
             BeforeAction();
-            return Ok(new BookingRepository().getBookings().ToArray());
+
+            var errorStatus = checkLoggedIn();
+            if (errorStatus != null)
+            {
+                return errorStatus;
+            }
+
+            return Ok(new BookingRepository().getBookings(currentUser).ToArray());
         }
 
         [HttpGet("{id}")]
@@ -42,7 +49,7 @@ namespace TodoApi.Controllers
         {
             BeforeAction();
             var errorStatus = checkLoggedIn();
-            if ((errorStatus) != null)
+            if (errorStatus != null)
             {
                 return errorStatus;
             }
@@ -74,34 +81,43 @@ namespace TodoApi.Controllers
             BeforeAction();
             var repository = new BookingRepository();
 
-            var oldItem = repository.getBookingItem(id);
+            BookingItem? oldItem = repository.getBookingItem(id);
 
             if (id != item.Id)
             {
                 return BadRequest(GetError("Id error"));
             }
-            try {
-                if (singleType == "cancel") {
-                    oldItem.Canceled = item.Canceled;
+            
+            if (singleType == "cancel")
+            {
+                if (oldItem.Rented == 1 || oldItem.Returned == 1)
+                {
+                    return BadRequest(GetError("item already taken"));
                 }
-                if (singleType == "rented") {
-                    oldItem.Rented = item.Rented;
-                }
-                if (singleType == "returned") {
-                    oldItem.Returned = item.Returned;
-                }
+                oldItem.Canceled = item.Canceled;
             }
-            catch(Exception e) {
-                return BadRequest(GetError(e.Message));
-                //not sure this is optimal
+            if (singleType == "rented") {
+                if (oldItem.Canceled == 1)
+                {
+                    return BadRequest(GetError("booking canceled"));
+                }
+                oldItem.Rented = item.Rented;
+            }
+            if (singleType == "returned") {
+                if (oldItem.Rented != 1)
+                {
+                    return BadRequest(GetError("rent isn't in progress"));
+                }
+                oldItem.Returned = item.Returned;
             }
 
             return Ok(repository.updateBookingItem(oldItem, id));
         }
 
-        [HttpPut("cancel/{id}")]
+        [HttpPut("canceled/{id}")]
         public IActionResult PutBookingItemCanceled(int id, BookingItem item)
         {
+            Console.WriteLine("canceling starting");
             return PutBookingItemSingle(id, item, "cancel");
         }
 
