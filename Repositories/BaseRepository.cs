@@ -9,9 +9,10 @@ public class BaseRepository
     MySqlConnection? connection = null;
     protected string tableName = null;
 
-    private MySqlConnection connect() 
+    private MySqlConnection connect()
     {
-        if (connection == null) {
+        if (connection == null)
+        {
             connection = new MySqlConnection("server=localhost;database=booking;user id=root;password=0000");
             connection.Open();
         }
@@ -21,18 +22,20 @@ public class BaseRepository
 
     protected DataSet getDataSet(string query, string? search = null, int? excludeId = null)
     {
-        if (excludeId != null) 
+        if (excludeId != null)
         {
             query += " AND id != @id";
         }
 
         connect();
         MySqlCommand cmd = new MySqlCommand(query, connection);
-        if (search != null) {
+        if (search != null)
+        {
             cmd.Parameters.AddWithValue("@search", search);
         }
 
-        if (excludeId != null) {
+        if (excludeId != null)
+        {
             cmd.Parameters.AddWithValue("@id", excludeId);
         }
 
@@ -43,10 +46,10 @@ public class BaseRepository
         return ds;
     }
 
-    protected DataRow? getRowById(int id) 
+    protected DataRow? getRowById(int id)
     {
         connect();
-        string query = $"SELECT * FROM {tableName} WHERE id = @id"; 
+        string query = $"SELECT * FROM {tableName} WHERE id = @id";
         MySqlCommand cmd = new MySqlCommand(query, connection);
         cmd.Parameters.AddWithValue("@id", id);
 
@@ -103,13 +106,14 @@ public class BaseRepository
         return Int32.Parse(lastId.ExecuteScalar().ToString());
     }
 
-    protected bool updateRow(Dictionary<string, string> data, int id) 
+    protected bool updateRow(Dictionary<string, string> data, int id)
     {
         connect();
         string sets = "";
-        
-        foreach(KeyValuePair<string, string> item in data) {
-            sets += (sets == ""?"": ", ") + item.Key + " = @" + item.Key;
+
+        foreach (KeyValuePair<string, string> item in data)
+        {
+            sets += (sets == "" ? "" : ", ") + item.Key + " = @" + item.Key;
         }
 
         string query = "UPDATE " + tableName + " SET " + sets + " WHERE id = @id";
@@ -117,7 +121,8 @@ public class BaseRepository
         Console.WriteLine(query);
 
         MySqlCommand cmd = new MySqlCommand(query, connection);
-        foreach(KeyValuePair<string, string> item in data) {
+        foreach (KeyValuePair<string, string> item in data)
+        {
             cmd.Parameters.AddWithValue("@" + item.Key, item.Value);
         }
         cmd.Parameters.AddWithValue("@id", id);
@@ -126,7 +131,7 @@ public class BaseRepository
         return true;
     }
 
-    protected bool deleteRow(int id) 
+    protected bool deleteRow(int id)
     {
         connect();
         var query = "DELETE FROM " + tableName + " WHERE id = @id";

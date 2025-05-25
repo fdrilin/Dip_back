@@ -11,12 +11,12 @@ public class UserItem
     public int? Admin { get; set; } = 0;
     public string? Token { get; set; }
 
-    public override string ToString() 
+    public override string ToString()
     {
         return Id + ":" + Login + ":" + Name;
     }
-    
-    public Dictionary<string, string> getAsDictionary() 
+
+    public Dictionary<string, string> getAsDictionary()
     {
         return new Dictionary<string, string>()
         {

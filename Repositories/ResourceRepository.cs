@@ -6,57 +6,67 @@ namespace TodoApi.Repositories;
 
 public class ResourceRepository : BaseRepository
 {
-    public ResourceRepository() {
-        tableName = "hw_resourses";
+    public ResourceRepository()
+    {
+        tableName = "resources";
     }
 
-    private ResourceItem? getItemFromRow(DataRow? row) 
+    private ResourceItem? getItemFromRow(DataRow? row)
     {
-        if (row == null) 
+        if (row == null)
         {
             return null;
         }
 
         ResourceItem item = new();
-        
+
         item.Id = Int32.Parse(row["id"].ToString() ?? "");
-        item.Title = row["title"].ToString();
-        item.Description = row["description"].ToString();
+        item.ResourceTypeId = Int32.Parse(row["resource_type_id"].ToString() ?? "0");
         item.SerialNo = row["serial_no"].ToString();
         item.Available = Int32.Parse(row["available"].ToString());
-        
+
         return item;
     }
 
-    public bool validateUnique(string serial_No, int? excludeId = null) {
+    public bool validateUnique(string serial_No, int? excludeId = null)
+    {
         string query = "SELECT * FROM " + tableName + " WHERE serial_no = @search";
         var ds = getDataSet(query, serial_No, excludeId);
 
-        return ds.Tables[0].Rows.Count == 0; 
+        return ds.Tables[0].Rows.Count == 0;
     }
 
-    public List<ResourceItem> getResources(string? search, bool isAdmin = false) {
+    public List<ResourceItem> getResources(string? search, bool isAdmin = false, int? resourceTypeId = null)
+    {
         string query = "SELECT * FROM " + tableName;
+        List<string> conditions = [];
         if (search != null)
         {
-            query += " WHERE (title LIKE @search OR description LIKE @search)";
-            if(!isAdmin) {
-                query += " AND available = 1";
-            }
+            conditions.Add("serial_no LIKE @search");
         }
-        else if(!isAdmin) {
-            query += " WHERE available = 1";
+        if (!isAdmin)
+        {
+            conditions.Add("available = 1");
         }
+        if (resourceTypeId != null)
+        {
+            conditions.Add($"resource_type_id = {resourceTypeId}");
+        }
+        if (conditions.Count > 0)
+        {
+            query += " WHERE " + string.Join(" AND ", conditions);
+        }
+        Console.WriteLine(query);
 
-        var ds = getDataSet(query, "%"+search+"%");
-    
+        var ds = getDataSet(query, "%" + search + "%");
+
         List<ResourceItem> resourceItems = new List<ResourceItem>();
         foreach (DataRow row in ds.Tables[0].Rows)
         {
             resourceItems.Add(getItemFromRow(row));
         }
 
-        return resourceItems; 
+        return resourceItems;
     }
 
     public ResourceItem? getResourceItem(int id)
@@ -69,15 +79,15 @@ public class ResourceRepository : BaseRepository
     public ResourceItem addResourceItem(ResourceItem resourceItem)
     {
         resourceItem.Id = addRow(resourceItem.getAsDictionary());
-        
+
         Console.WriteLine("added resource");
         return resourceItem;
     }
-    
+
     public ResourceItem updateResourceItem(ResourceItem resourceItem, int id)
     {
         updateRow(resourceItem.getAsDictionary(), id);
-        
+
         Console.WriteLine("updated resource");
         return resourceItem;
     }

@@ -30,8 +30,15 @@ namespace TodoApi.Controllers
             BeforeAction();
 
             string? search = Request.Query["search"];
+            int? resourceTypeId = int.TryParse(Request.Query["resource_type_id"], out var id) ? id : (int?)null;
 
-            return Ok(new ResourceRepository().getResources(search, isAdmin()).ToArray());
+            return Ok(
+                new ResourceRepository().getResources(
+                    search,
+                    isAdmin(),
+                    resourceTypeId
+                ).ToArray()
+            );
         }
 
         [HttpGet("{id}")]
@@ -105,12 +112,6 @@ namespace TodoApi.Controllers
         private string? ValidateItem(ResourceRepository repository, ResourceItem item) 
         {
             BeforeAction();
-            if(string.IsNullOrEmpty(item.Title)) {
-                return "title empty";
-            }
-            if(string.IsNullOrEmpty(item.Description)) { 
-                return "description empty";
-            }
             if(string.IsNullOrEmpty(item.SerialNo)) { 
                 return "Serial_No empty";
             }

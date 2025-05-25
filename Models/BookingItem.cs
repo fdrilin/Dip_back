@@ -10,12 +10,12 @@ public class BookingItem
     public int Rented { get; set; }
     public int Returned { get; set; }
     public int Canceled { get; set; }
-    public override string ToString() 
+    public override string ToString()
     {
         return Id + ":" + ResourceId + ":" + UserId + ":" + BeginDate + ":" + EndDate;
     }
-    
-    public Dictionary<string, string> getAsDictionary() 
+
+    public Dictionary<string, string> getAsDictionary()
     {
         return new Dictionary<string, string>()
         {
