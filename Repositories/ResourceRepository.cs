@@ -1,4 +1,5 @@
 using System.Data;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using TodoApi.Models;
 
@@ -67,6 +68,27 @@ public class ResourceRepository : BaseRepository
         }
 
         return resourceItems;
+    }
+
+    public ResourceItem? getResourceByType(int? resourceTypeId)
+    {
+        if (resourceTypeId == null) return null;
+        string query = @$"SELECT r.*
+            FROM resources as r 
+            LEFT JOIN booking as b on b.hw_resourse_id = r.id AND end_date >= current_date() AND b.canceled = 0 AND b.returned = 0
+            WHERE r.resource_type_id = {resourceTypeId} AND r.available = 1 AND b.hw_resourse_id is null
+            LIMIT 1";
+        Console.WriteLine(query);
+
+        var ds = getDataSet(query);
+
+        var dsr = ds.Tables[0].Rows;
+        if (dsr.Count == 0)
+        {
+            return null;
+        }
+
+        return getItemFromRow(dsr[0]);
     }
 
     public ResourceItem? getResourceItem(int id)

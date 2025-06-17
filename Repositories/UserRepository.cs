@@ -27,6 +27,7 @@ public class UserRepository : BaseRepository
         item.Document_id = row["document_id"].ToString();
         item.Admin = Int32.Parse(row["admin"].ToString() ?? "");
         item.Token = row["token"].ToString();
+        item.Number = row["number"].ToString();
 
         return item;
     }

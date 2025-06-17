@@ -1,6 +1,4 @@
 using System.Data;
-using System.Net.Http.Headers;
-using Microsoft.EntityFrameworkCore;
 using TodoApi.Models;
 
 namespace TodoApi.Repositories;
@@ -26,7 +24,10 @@ public class ResourceTypeRepository : BaseRepository
         item.Description = row["description"].ToString();
         item.Software = row["software"].ToString();
         item.Tags = row["tags"].ToString();
-        item.Available = Int32.Parse(row["available"].ToString() ?? "");
+        if (row.Table.Columns.Contains("available")) {
+            item.Available = Int32.Parse(row["available"].ToString() ?? "");
+        }
+        item.PictureLink = row["picture_link"].ToString();
 
         return item;
     }
@@ -41,7 +42,21 @@ public class ResourceTypeRepository : BaseRepository
 
     public List<ResourceTypeItem> getResourceTypes(string? search, string? tags, bool isAdmin = false)
     {
-        string query = "SELECT *, (SELECT COUNT(*) FROM resources WHERE resource_type_id = resource_types.id and available = 1) as available FROM " + tableName;
+        string queryWhere = "";
+        if (!isAdmin)
+        {
+            //queryWhere = "WHERE r.available = 1 AND b.hw_resourse_id is null";
+        }
+        string query = $@"
+            SELECT rt.*, available FROM 
+            (
+                SELECT resource_type_id, count(*) as available #sum(case WHEN r.available = 1 AND b.hw_resourse_id is null then 1 else 0 end) as available 
+                FROM resources as r 
+                #LEFT JOIN booking as b on b.hw_resourse_id = r.id AND end_date >= current_date() AND b.canceled = 0 AND b.returned = 0 
+                {queryWhere} 
+                GROUP BY r.resource_type_id
+            ) as rtAv 
+            JOIN resource_types as rt on rt.id = rtAv.resource_type_id ";
         List<string> conditions = [];
         if (search != null)
         {
@@ -61,6 +76,7 @@ public class ResourceTypeRepository : BaseRepository
         {
             query += " WHERE " + string.Join(" AND ", conditions);
         }
+        query = $"SELECT * FROM ({query}) as t";
         Console.WriteLine(query);
 
         var ds = getDataSet(query, "%" + search + "%");

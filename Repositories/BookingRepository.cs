@@ -28,17 +28,37 @@ public class BookingRepository : BaseRepository
         item.Rented = Int32.Parse(row["rented"].ToString());
         item.Returned = Int32.Parse(row["returned"].ToString());
         item.Canceled = Int32.Parse(row["canceled"].ToString());
+        item.ResourceTypeTitle = row["title"].ToString();
 
         return item;
     }
 
-    public List<BookingItem> getBookings(UserItem currentUser)
+    public List<BookingItem> getBookings(UserItem currentUser, string? tags = null)
     {
-        string query = "SELECT * FROM " + tableName;
+        string query = $@"SELECT * FROM (
+            SELECT rt.title, b.* FROM {tableName} as b
+            JOIN resources as r ON r.id = b.hw_resourse_id
+            JOIN resource_types as rt ON rt.id = r.resource_type_id) as t";
+        List<string> conditions = [];
         if (currentUser.Admin != 1)
         {
-            query += " WHERE user_id = " + currentUser.Id;
+            conditions.Add("user_id = " + currentUser.Id);
         }
+        if (!string.IsNullOrEmpty(tags))
+        {
+            string[] tagValues = tags.Split(",");
+            List<string> tagsConditions = [];
+            foreach (var tag in tagValues)
+            {
+                tagsConditions.Add($"{tag} = 0");
+            }
+            conditions.Add("(" + string.Join(" OR ", tagsConditions) + ")");
+        }
+        if (conditions.Count > 0)
+        {
+            query += " WHERE " + string.Join(" AND ", conditions);
+        }
+        Console.WriteLine(query);
 
         var ds = getDataSet(query);
 

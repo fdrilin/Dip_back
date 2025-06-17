@@ -31,8 +31,10 @@ namespace TodoApi.Controllers
             {
                 return errorStatus;
             }
+            
+            string? tags = Request.Query["tags"];
 
-            return Ok(new BookingRepository().getBookings(currentUser).ToArray());
+            return Ok(new BookingRepository().getBookings(currentUser, tags).ToArray());
         }
 
         [HttpGet("{id}")]
@@ -67,6 +69,7 @@ namespace TodoApi.Controllers
                 return StatusCode(403, GetError("Forbidden."));
             }
             bookingItem.UserId = dbItem.Id;
+            bookingItem.ResourceId = dbItem.ResourceId;
             bookingItem.Rented = dbItem.Rented;
             bookingItem.Returned = dbItem.Returned;
             bookingItem.Canceled = dbItem.Canceled;
@@ -146,12 +149,24 @@ namespace TodoApi.Controllers
             }
              
             BookingRepository repository = new();
+
+            if (bookingItem.ResourceTypeId == 0)
+            {
+                return BadRequest(GetError("missing resource type"));
+            }
+            ResourceItem? resourceItem = new ResourceRepository().getResourceByType(bookingItem.ResourceTypeId);
+            if (resourceItem == null)
+            {
+                return BadRequest(GetError("no available resources"));
+            }
+            bookingItem.ResourceId = resourceItem.Id;
+
             var error = ValidateItem(repository, bookingItem);
             if (error != null) 
             {
                 return BadRequest(GetError(error));
             }
-            
+
             bookingItem.UserId = currentUser.Id;
             bookingItem.Rented = bookingItem.Returned = bookingItem.Canceled = 0;
 
@@ -168,9 +183,7 @@ namespace TodoApi.Controllers
 
         private string? ValidateItem(BookingRepository repository, BookingItem item) 
         {
-            if(item.ResourceId == 0) { 
-                return "Resource not defined";
-            }
+            //if(item.ResourceId == 0) { return "Resource not defined";}
             if(string.IsNullOrEmpty(item.BeginDate)) { 
                 return "Begin date empty";
             }

@@ -10,6 +10,8 @@ public class BookingItem
     public int Rented { get; set; }
     public int Returned { get; set; }
     public int Canceled { get; set; }
+    public int? ResourceTypeId { get; set; }
+    public string? ResourceTypeTitle { get; set; }
     public override string ToString()
     {
         return Id + ":" + ResourceId + ":" + UserId + ":" + BeginDate + ":" + EndDate;

@@ -9,6 +9,7 @@ public class ResourceTypeItem
     public string? Tags { get; set; }
     public string[]? TagsArray { get; set; }
     public int? Available { get; set; }
+    public string? PictureLink { get; set; }
     public override string ToString()
     {
         return Id + ":" + Title + ":" + Description;
@@ -22,6 +23,7 @@ public class ResourceTypeItem
             { "description", Description },
             { "software", Software },
             { "tags", Tags },
+            { "picture_link", PictureLink },
         };
     }
 }
