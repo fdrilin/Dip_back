@@ -35,7 +35,7 @@ public class UserRepository : BaseRepository
     public bool validateUnique(string login, int? excludeId = null)
     {
         string query = "SELECT * FROM " + tableName + " WHERE login = @search";
-
+        Console.WriteLine(query);
         var ds = getDataSet(query, login, excludeId);
 
         return ds.Tables[0].Rows.Count == 0;
@@ -46,8 +46,9 @@ public class UserRepository : BaseRepository
         string query = "SELECT * FROM " + tableName;
         if (search != null)
         {
-            query += " WHERE (login LIKE @search OR name LIKE @search)";
+            query += $" WHERE (id = '{search}' OR login LIKE @search OR name LIKE @search)";
         }
+        Console.WriteLine(query);
         var ds = getDataSet(query, "%" + search + "%");
 
         List<UserItem> userItems = new List<UserItem>();

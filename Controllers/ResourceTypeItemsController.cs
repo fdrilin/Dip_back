@@ -81,24 +81,21 @@ namespace TodoApi.Controllers
 
         private string? ValidateItem(ResourceTypeRepository repository, ResourceTypeItem item) 
         {
-            BeforeAction();
             if(string.IsNullOrEmpty(item.Title)) {
-                return "title empty";
-            }
-            if(string.IsNullOrEmpty(item.Description)) { 
-                return "description empty";
+                return "Назва пуста";
             }
             if (!repository.validateUnique(item.Title, item.Id))
             {
                 return "Resource type with this title already exists";
             }
 
+            return "turned off";
+
             return null;
         }
 
         private string? ValidateItem(ResourceTypeRepository repository, ResourceTypeItem item, int id) 
         {
-            BeforeAction();
             if (id != item.Id)
             {
                 return "Id error";

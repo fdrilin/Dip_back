@@ -10,6 +10,7 @@ using TodoApi.Repositories;
 using ZstdSharp.Unsafe;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace TodoApi.Controllers
 {
@@ -30,7 +31,7 @@ namespace TodoApi.Controllers
 
             if (dbUser == null || dbUser.Password != userItem.Password)
             {
-                return StatusCode(403, GetError("login or password incorrect"));
+                return StatusCode(403, GetError("Логін або пароль не правильні"));
             }
             dbUser.Token = GenerateSimpleToken(dbUser.Login + dbUser.Password);
             repository.updateUserItem(dbUser, dbUser.Id);
@@ -46,7 +47,7 @@ namespace TodoApi.Controllers
             string errorStatus = ValidateItem(repository, userItem);
             if (errorStatus != null)
             {
-                BadRequest(GetError(errorStatus));
+                return BadRequest(GetError(errorStatus));
             }
 
             UserItem newUser = repository.addUserItem(userItem);
@@ -67,31 +68,40 @@ namespace TodoApi.Controllers
         
         private string? ValidateItem(UserRepository repository, UserItem item)
         {
+            Console.WriteLine("validating");
+            Console.WriteLine(item.Login);
+            Console.WriteLine(string.IsNullOrEmpty(item.Login));
             if (string.IsNullOrEmpty(item.Login))
             {
-                return "Login empty";
+                return "Логін пустий";
             }
             if (string.IsNullOrEmpty(item.Password))
             {
-                return "Password empty";
-            }
-            if (string.IsNullOrEmpty(item.Name))
-            {
-                return "Name empty";
+                return "Пароль пустий";
             }
             if (string.IsNullOrEmpty(item.Email))
             {
-                return "Email empty";
+                return "Е-мейл пустий";
+            }
+            
+            if (!Regex.IsMatch(item.Email, @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"))
+            {
+                return "Неправильний е-мейл";
             }
 
-            if (!repository.validateUnique(item.Login, item.Id))
+            if (!repository.validateUnique(item.Login))
             {
-                return "This login is already used";
+                return "Цей логін вже використовується";
+            }
+            
+            if (!string.IsNullOrEmpty(item.Number) && !Regex.IsMatch(item.Number, @"^\+?\d{10,15}$"))
+            {
+                return "Неправильний номер";
             }
 
-            if (!repository.validateUnique(item.Email, item.Id))
+            if (!repository.validateUnique(item.Email))
             {
-                return "This email is already used";
+                return "Цей е-мейл вже використовується";
             }
 
             return null;

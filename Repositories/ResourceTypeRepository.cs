@@ -1,4 +1,6 @@
 using System.Data;
+using Google.Protobuf.WellKnownTypes;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using TodoApi.Models;
 
 namespace TodoApi.Repositories;
@@ -60,7 +62,7 @@ public class ResourceTypeRepository : BaseRepository
         List<string> conditions = [];
         if (search != null)
         {
-            conditions.Add("(title LIKE @search OR description LIKE @search)");
+            conditions.Add($"(id = '{search}' OR title LIKE @search OR description LIKE @search OR software LIKE @search)");
         }
         if (!string.IsNullOrEmpty(tags))
         {
@@ -107,6 +109,9 @@ public class ResourceTypeRepository : BaseRepository
 
     public ResourceTypeItem updateResourceTypeItem(ResourceTypeItem item, int id)
     {
+        ResourceTypeItem oldItem = getResourceTypeItem(id);
+        
+        item.PictureLink = oldItem.PictureLink;
         updateRow(item.getAsDictionary(), id);
 
         Console.WriteLine("updated resource");

@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using TodoApi.Models;
 using TodoApi.Repositories;
 using ZstdSharp.Unsafe;
+using System.Text.Json;
 
 namespace TodoApi.Controllers
 {
@@ -33,8 +34,10 @@ namespace TodoApi.Controllers
             }
             
             string? tags = Request.Query["tags"];
+            string? search = Request.Query["search"];
+            Console.WriteLine(search);
 
-            return Ok(new BookingRepository().getBookings(currentUser, tags).ToArray());
+            return Ok(new BookingRepository().getBookings(currentUser, tags, search).ToArray());
         }
 
         [HttpGet("{id}")]
@@ -95,21 +98,26 @@ namespace TodoApi.Controllers
             {
                 if (oldItem.Rented == 1 || oldItem.Returned == 1)
                 {
-                    return BadRequest(GetError("item already taken"));
+                    return BadRequest(GetError("Предмет вже підтверджений"));
+                }
+                Console.WriteLine("admin:" + isAdmin());
+                if (oldItem.Canceled == 1 && !isAdmin())
+                {
+                    return BadRequest(GetError("Не можливо відмінити відміну"));
                 }
                 oldItem.Canceled = item.Canceled;
             }
             if (singleType == "rented") {
                 if (oldItem.Canceled == 1)
                 {
-                    return BadRequest(GetError("booking canceled"));
+                    return BadRequest(GetError("Бронювання відмінено"));
                 }
                 oldItem.Rented = item.Rented;
             }
             if (singleType == "returned") {
                 if (oldItem.Rented != 1)
                 {
-                    return BadRequest(GetError("rent isn't in progress"));
+                    return BadRequest(GetError("Бронювання не підверджено"));
                 }
                 oldItem.Returned = item.Returned;
             }
@@ -142,24 +150,12 @@ namespace TodoApi.Controllers
         public IActionResult PostBookingItem(BookingItem bookingItem)
         {
             BeforeAction();
+            BookingRepository repository = new();
             var errorStatus = checkLoggedIn();
-            if ((errorStatus) != null)
+            if (errorStatus != null)
             {
                 return errorStatus;
             }
-             
-            BookingRepository repository = new();
-
-            if (bookingItem.ResourceTypeId == 0)
-            {
-                return BadRequest(GetError("missing resource type"));
-            }
-            ResourceItem? resourceItem = new ResourceRepository().getResourceByType(bookingItem.ResourceTypeId);
-            if (resourceItem == null)
-            {
-                return BadRequest(GetError("no available resources"));
-            }
-            bookingItem.ResourceId = resourceItem.Id;
 
             var error = ValidateItem(repository, bookingItem);
             if (error != null) 
@@ -167,8 +163,19 @@ namespace TodoApi.Controllers
                 return BadRequest(GetError(error));
             }
 
+            Console.WriteLine(bookingItem.ResourceTypeId);
+            ResourceItem? resourceItem = new ResourceRepository().getAvailableResource(bookingItem.BeginDate, bookingItem.EndDate, bookingItem.ResourceTypeId);
+            if (resourceItem == null)
+            {
+                return BadRequest(GetError("Немає доступних ресурсів"));
+            }
+            bookingItem.ResourceId = resourceItem.Id;
+
             bookingItem.UserId = currentUser.Id;
             bookingItem.Rented = bookingItem.Returned = bookingItem.Canceled = 0;
+
+            Console.WriteLine(JsonSerializer.Serialize(resourceItem));
+            Console.WriteLine(JsonSerializer.Serialize(bookingItem));
 
             return Ok(repository.addBookingItem(bookingItem));
         }
@@ -181,14 +188,88 @@ namespace TodoApi.Controllers
             return Ok(new BookingRepository().deleteBookingItem(id));
         }
 
-        private string? ValidateItem(BookingRepository repository, BookingItem item) 
+        private string? ValidateItemGeneral(BookingRepository repository, BookingItem item, int excludeId = 0) 
         {
             //if(item.ResourceId == 0) { return "Resource not defined";}
-            if(string.IsNullOrEmpty(item.BeginDate)) { 
-                return "Begin date empty";
+            string[] beginDateArrayStr = item.BeginDate.Split(" ")[0].Split("-");
+            string[] endDateArrayStr = item.EndDate.Split(" ")[0].Split("-");
+            if(beginDateArrayStr[0] == "") { 
+                return "Рік початку незаповнений";
             }
-            if(string.IsNullOrEmpty(item.EndDate)) { 
-                return "End date empty";
+            if(beginDateArrayStr[1] == "") { 
+                return "Місяць початку незаповнений";
+            }
+            if(beginDateArrayStr[2] == "") { 
+                return "День початку незаповнений";
+            }
+            if(endDateArrayStr[0] == "") { 
+                return "Рік кінця незаповнений";
+            }
+            if(endDateArrayStr[1] == "") { 
+                return "Місяць кінця незаповнений";
+            }
+            if(endDateArrayStr[2] == "") { 
+                return "День кінця незаповнений";
+            }
+
+            List<int> beginDateArray = new();
+            foreach (var s in beginDateArrayStr) 
+            {
+                if (int.TryParse(s, out int value))
+                {
+                    beginDateArray.Add(value);
+                }
+                else 
+                {
+                    return "Помилка дати";
+                }
+            }
+            List<int> endDateArray = new();
+            foreach (var s in endDateArrayStr) 
+            {
+                if (int.TryParse(s, out int value))
+                {
+                    endDateArray.Add(value);
+                }
+                else 
+                {
+                    return "Помилка дати";
+                }
+            }
+
+            if(!DateTime.TryParse(string.Join("-", beginDateArray), out DateTime beginDate))
+            {
+                return "Неможлива дата початку";
+            }
+            if(!DateTime.TryParse(string.Join("-", endDateArray), out DateTime endDate))
+            {
+                return "Неможлива дата кінця";
+            }
+
+            if (endDate < beginDate)
+            {
+                return "Початкова дата пізнаше кінцевої";
+            }
+
+            return null;
+        }
+
+        private string? ValidateItem(BookingRepository repository, BookingItem item) 
+        {
+            var error = ValidateItemGeneral(repository, item);
+            if (error != null) 
+            {
+                return error;
+            }
+            
+            if (DateTime.Now > DateTime.Parse(item.BeginDate))
+            {
+                return "Дата початку занадто рання";
+            }
+
+            if (item.ResourceTypeId == 0)
+            {
+                return "Тип ресурсу не вибрано";
             }
 
             return null;
@@ -198,18 +279,31 @@ namespace TodoApi.Controllers
         {
             if (id != item.Id)
             {
-                return "Id error";
+                return "Помилка id";
             }
 
-            var error = ValidateItem(repository, item);
+            var error = ValidateItemGeneral(repository, item, id);
             if (error != null) 
             {
                 return error;
             }
-
-            if(repository.getBookingItem(id) == null) 
+            
+            if (
+                DateTime.Now > DateTime.Parse(item.BeginDate)
+                && DateTime.Parse(repository.getBookingItem(item.Id).BeginDate) > DateTime.Parse(item.BeginDate) 
+            )
             {
-                return "Item not found";
+                return "Дата початку занадто рання";
+            }
+
+            if (repository.getBookingItem(id) == null)
+            {
+                return "Не знайдено";
+            }
+
+            if (new ResourceRepository().isAvailableSpecific(DateTime.Parse(item.BeginDate).ToString("yyyy-MM-dd"), DateTime.Parse(item.EndDate).ToString("yyyy-MM-dd"), item.Id, item.ResourceId))
+            {
+                return "Бронювання на ций час вже існує";
             }
 
             return null;

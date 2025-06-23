@@ -24,7 +24,7 @@ public class BaseRepository
     {
         if (excludeId != null)
         {
-            query += " AND id != @id";
+            query += $" AND {tableName}.id != @id";
         }
 
         connect();

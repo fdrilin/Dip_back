@@ -102,14 +102,22 @@ namespace TodoApi.Controllers
 
         private string? ValidateItem(ResourceRepository repository, ResourceItem item) 
         {
-            BeforeAction();
-            if(string.IsNullOrEmpty(item.SerialNo)) { 
-                return "Serial_No empty";
+            if (!isAdmin())
+            {
+                return "Немає доступу";
+            }
+            if (string.IsNullOrEmpty(item.SerialNo))
+            {
+                return "Серійний номер не заповнено";
+            }
+            Console.WriteLine(item.ResourceTypeId);
+            if (item.ResourceTypeId == 0 || item.ResourceTypeId == null) {
+                return "Ресурс тип не заповнено";
             }
 
-            if (!repository.validateUnique(item.SerialNo, item.Id)) 
+            if (!repository.validateUnique(item.SerialNo, item.Id))
             {
-                return "Resource with this serial_No already exists";
+                return "Техніка з таким серійним номер вже існує";
             }
 
             return null;
@@ -117,10 +125,9 @@ namespace TodoApi.Controllers
 
         private string? ValidateItem(ResourceRepository repository, ResourceItem resourceItem, int id) 
         {
-            BeforeAction();
             if (id != resourceItem.Id)
             {
-                return "Id error";
+                return "Помилка id";
             }
 
             var error = ValidateItem(repository, resourceItem);
@@ -131,7 +138,7 @@ namespace TodoApi.Controllers
 
             if(repository.getResourceItem(id) == null) 
             {
-                return "Item not found";
+                return "Не знайдено";
             }
 
             return null;

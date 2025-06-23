@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using TodoApi.Models;
 using TodoApi.Repositories;
 using ZstdSharp.Unsafe;
+using System.Text.RegularExpressions;
 
 namespace TodoApi.Controllers
 {
@@ -67,6 +68,8 @@ namespace TodoApi.Controllers
             {
                 return BadRequest(GetError(error));
             }
+            UserItem oldItem = repository.getUserItem(id);
+            userItem.Password = oldItem.Password;
 
             return Ok(repository.updateUserItem(userItem, id));
         }
@@ -137,58 +140,80 @@ namespace TodoApi.Controllers
             return Ok(new UserRepository().deleteUserItem(id));
         }
 
-        private string? ValidateItem(UserRepository repository, UserItem item)
+        private string? ValidateItemGeneral(UserRepository repository, UserItem item)
         {
-            if (isAdmin())
+            if (!isAdmin())
             {
-                return "admin only";
+                return "Немає доступу";
             }
             if (string.IsNullOrEmpty(item.Login))
             {
-                return "Login empty";
-            }
-            if (string.IsNullOrEmpty(item.Password))
-            {
-                return "Password empty";
+                return "Логін пустий";
             }
             if (string.IsNullOrEmpty(item.Name))
             {
-                return "Name empty";
+                return "Ім'я пусте";
             }
             if (string.IsNullOrEmpty(item.Email))
             {
-                return "Email empty";
+                return "Е-мейл пустий";
             }
 
             if (!repository.validateUnique(item.Login, item.Id))
             {
-                return "This login is already used";
+                return "Цей логін вже використований";
             }
 
             if (!repository.validateUnique(item.Email, item.Id))
             {
-                return "This email is already used";
+                return "Цей е-мейл вже використований";
+            }
+
+            if (!Regex.IsMatch(item.Email, @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"))
+            {
+                return "Неправильний е-мейл";
+            }
+
+            if (!string.IsNullOrEmpty(item.Number) && !Regex.IsMatch(item.Number, @"^\+?\d{10,15}$"))
+            {
+                return "Неправильний номер";
             }
 
             return null;
         }
 
-        private string? ValidateItem(UserRepository repository, UserItem item, int id) 
+        private string? ValidateItem(UserRepository repository, UserItem item)
         {
-            if (id != item.Id)
-            {
-                return "Id error";
-            }
-
-            var error = ValidateItem(repository, item);
-            if (error != null) 
+            var error = ValidateItemGeneral(repository, item);
+            if (error != null)
             {
                 return error;
             }
 
-            if(repository.getUserItem(id) == null) 
+            if (string.IsNullOrEmpty(item.Password))
             {
-                return "Item not found";
+                return "Пароль пустий";
+            }
+
+            return null;
+        }
+
+        private string? ValidateItem(UserRepository repository, UserItem item, int id)
+        {
+            if (id != item.Id)
+            {
+                return "Помилка id";
+            }
+
+            var error = ValidateItemGeneral(repository, item);
+            if (error != null)
+            {
+                return error;
+            }
+
+            if (repository.getUserItem(id) == null)
+            {
+                return "Не знайдено";
             }
 
             return null;

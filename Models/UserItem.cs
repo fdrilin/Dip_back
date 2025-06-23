@@ -14,7 +14,7 @@ public class UserItem
 
     public override string ToString()
     {
-        return Id + ":" + Login + ":" + Name;
+        return Id + ":" + Login + ":" + Name + ":" + Admin;
     }
 
     public Dictionary<string, string> getAsDictionary()
